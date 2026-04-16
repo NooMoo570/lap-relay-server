@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Query
-from pydantic import BaseModel
 from typing import Dict, Optional
 import time
+
+from fastapi import FastAPI, Query
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -28,6 +29,8 @@ class LapData(BaseModel):
     lap_count: int
     pitout_lap_count: int
     timestamp: float
+    setup_name: Optional[str] = None
+    setup_name_raw: Optional[str] = None
 
 
 def cleanup_lap_team(team_key: str, stale_seconds: int = LAP_TTL_SECONDS) -> None:
@@ -94,6 +97,8 @@ def lap_update(data: LapData):
         "lap_count": int(data.lap_count),
         "pitout_lap_count": int(data.pitout_lap_count),
         "timestamp": float(data.timestamp),
+        "setup_name": str(data.setup_name).strip() if data.setup_name is not None else None,
+        "setup_name_raw": str(data.setup_name_raw).strip() if data.setup_name_raw is not None else None,
         "server_received_at": time.time(),
     }
 
@@ -110,6 +115,8 @@ def lap_update(data: LapData):
         "stdev": stored_row["stdev"],
         "lap_count": stored_row["lap_count"],
         "pitout_lap_count": stored_row["pitout_lap_count"],
+        "setup_name": stored_row["setup_name"],
+        "setup_name_raw": stored_row["setup_name_raw"],
     }
 
 
@@ -133,6 +140,8 @@ def lap_all(team_key: str = Query(...)):
             "lap_count": item.get("lap_count"),
             "pitout_lap_count": item.get("pitout_lap_count"),
             "timestamp": item.get("timestamp"),
+            "setup_name": item.get("setup_name"),
+            "setup_name_raw": item.get("setup_name_raw"),
         }
 
     return result
